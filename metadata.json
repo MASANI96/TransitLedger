@@ -1,0 +1,6 @@
+{
+  "name": "運送日報・支払明細管理システム",
+  "description": "運送会社向けLINE日報受付・スプレッドシート一覧管理・月末支払明細書自動作成デモシステム",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
