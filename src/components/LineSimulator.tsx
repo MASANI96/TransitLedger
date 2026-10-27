@@ -31,11 +31,16 @@ export function LineSimulator() {
   const [notes, setNotes] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
 
-  const chatBottomRef = useRef<HTMLDivElement | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  const prevMsgCountRef = useRef<number>(chatMessages.length);
 
   useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages, isLiffOpen]);
+    // 新しいメッセージが追加された時のみ、トーク履歴コンテナ内部だけを最下部へスクロール
+    if (chatMessages.length > prevMsgCountRef.current && chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+    prevMsgCountRef.current = chatMessages.length;
+  }, [chatMessages.length]);
 
   const computedHours = calculateWorkingHours(startTime, endTime, breakMinutes);
 
@@ -86,9 +91,9 @@ export function LineSimulator() {
       </div>
 
       {/* スマートフォン（iPhone風）外枠フレーム */}
-      <div className="relative w-[356px] flex-1 max-h-[790px] min-h-[580px] bg-slate-950 rounded-[38px] p-[10px] border-[3px] border-slate-600 flex flex-col overflow-hidden">
+      <div className="relative w-[356px] flex-1 max-h-[790px] min-h-[580px] bg-slate-950 rounded-[38px] p-[10px] border-[3px] border-slate-600 flex flex-col overflow-clip">
         {/* スマホ内部スクリーン */}
-        <div className="relative w-full h-full bg-[#7494C0] rounded-[28px] overflow-hidden flex flex-col">
+        <div className="relative w-full h-full bg-[#7494C0] rounded-[28px] overflow-clip flex flex-col">
           {/* iOSステータスバー */}
           <div className="bg-[#242B38] text-white px-5 pt-2 pb-1 flex items-center justify-between text-[12px] font-num shrink-0">
             <span className="font-semibold">18:42</span>
@@ -106,7 +111,10 @@ export function LineSimulator() {
           </div>
 
           {/* LINEトーク履歴エリア */}
-          <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 select-text">
+          <div
+            ref={chatScrollRef}
+            className="flex-1 overflow-y-auto px-3 py-3 space-y-3 select-text"
+          >
             <div className="text-center">
               <span className="inline-block bg-slate-900/25 text-white text-[11px] px-3 py-0.5 rounded">
                 トーク履歴
@@ -142,7 +150,6 @@ export function LineSimulator() {
                 </div>
               )
             )}
-            <div ref={chatBottomRef} />
           </div>
 
           {/* 下部リッチメニュー風 大型ボタンエリア */}
@@ -159,13 +166,9 @@ export function LineSimulator() {
             </button>
           </div>
 
-          {/* LIFF スライドアップ日報入力フォーム */}
-          <div
-            className={`absolute inset-x-0 bottom-0 top-[34px] bg-white z-20 flex flex-col rounded-t-2xl border-t border-slate-300 transition-transform duration-200 ease-out ${
-              isLiffOpen ? 'translate-y-0' : 'translate-y-full pointer-events-none'
-            }`}
-            aria-hidden={!isLiffOpen}
-          >
+          {/* LIFF スライドアップ日報入力フォーム（開いている時のみ描画） */}
+          {isLiffOpen && (
+            <div className="absolute inset-x-0 bottom-0 top-[34px] bg-white z-20 flex flex-col rounded-t-2xl border-t border-slate-300 animate-[liffSlideUp_0.18s_ease-out]">
             {/* LIFF モーダルヘッダー */}
             <div className="px-4 py-3 bg-slate-900 text-white flex items-center justify-between shrink-0 rounded-t-xl">
               <span className="font-bold text-[15px]">業務日報 入力フォーム</span>
@@ -385,8 +388,9 @@ export function LineSimulator() {
                   日報を本部に送信する
                 </button>
               </div>
-            </form>
-          </div>
+              </form>
+            </div>
+          )}
 
           {/* iPhoneホームバー */}
           <div className="bg-slate-100 pb-1.5 pt-0.5 flex justify-center shrink-0">
